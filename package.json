@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "file-system": "^1.2.9",
     "puppeteer": "^12.0.1"
   }
 }

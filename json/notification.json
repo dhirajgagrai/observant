@@ -1,0 +1,8 @@
+[
+  {
+    "id": "example",
+    "email": "dhirajgagrai@gmail.com",
+    "url": "https://example.com",
+    "element": "body > div"
+  }
+]
