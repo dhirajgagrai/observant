@@ -1,61 +1,76 @@
-const fs = require('fs');
-const list = require('./json/notification.json');
-
 const puppeteer = require('puppeteer');
+const mongoose = require('mongoose');
 
+require('dotenv').config();
+
+const db = require('./db');
+
+const User = require('./models/user');
+const Notification = require('./models/notification');
+const Content = require('./models/content');
+
+// Run notification job
 (async () => {
+  await db.connect(process.env.MONGO_URI);
+
+  // Launch puppeteer
   const browser = await puppeteer.launch({headless: true});
-  let promises = [];
 
-  list.forEach((el, i) => {
+  // Get all notification jobs
+  const notiList = await Notification.find().populate("user");
+
+  const promises = [];
+  notiList.forEach((noti, i) => {
     promises[i] = new Promise(async (resolve, reject) => {
+      // Loading page
       const page = await browser.newPage();
-
-      await page.goto(el.url , {
+      await page.goto(noti.url, {
         timeout: 0
       });
 
+      // Scraping
       const scrape = await page.evaluate((element) => {
         return document.querySelector(element).innerText;
-      }, el.element);
-      
-      // Read file of this ID
-      fs.readFile("id" + el.id, (err, data) => {
-        // If file doesn't exist, create it
-        if (err) {
-          if (err.code === 'ENOENT')
-            fs.writeFile("id" + el.id, scrape, (err) => {
-              resolve("Notification Created for ID " + el.id);
-              if (err)
-                reject(err);
-            });
-          else reject(err);
+      }, noti.element);
+
+      const textContent = await Content.findOne({ notification: noti.id });
+
+      // Detecting changes and taking action accordingly
+      if (textContent == "") {
+        const create = await Content.create({
+          notification: noti.id,
+          text: scrape
+        });
+        console.log(create);
+        resolve('\x1b[32mNOTIFICATION CREATED\x1b[0m for id ' + noti.id);
+      }
+      else {
+        const scrapeBuffer = Buffer.from(scrape);
+        const dbBuffer = Buffer.from(textContent.text);
+        const change = Buffer.compare(dbBuffer, scrapeBuffer);
+
+        if (change) {
+          textContent.text = scrape;
+          textContent.save();
+          console.log(textContent);
+          const email = await noti.populate("user").then((data) => { return data.user.email });
+          resolve('\x1b[32mNOTIFICATION SENT\x1b[0m to email ' + email);
         }
         else {
-          var buf = Buffer.from(scrape);
-          let changed = Buffer.compare(data, buf);
-
-          // If change detected, write contents to file
-          if (changed !== 0) {
-            fs.writeFile("id" + el.id, scrape, (err) => {
-              resolve("Notification sent to " + el.email);
-              if (err)
-                reject(err);
-            });
-          }
-          else resolve("No Change for ID " + el.id);
+          resolve('\x1b[33mNO CHANGE\x1b[0m for id ' + noti.id);
         }
-      });
+      }
+    })
 
-    });
   });
 
-  Promise.all(promises).then(data => {
+  Promise.all(promises).then((data) => {
     data.forEach(data => {
       console.log(data);
     });
 
     browser.close();
+    mongoose.connection.close();
   });
 
 })();
