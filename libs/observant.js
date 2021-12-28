@@ -3,46 +3,46 @@ const mongoose = require('mongoose');
 
 require('dotenv').config();
 
-const db = require('./db');
+const db = require('../db');
 
-const User = require('./models/user');
-const Notification = require('./models/notification');
-const Content = require('./models/content');
+const User = require('../models/user');
+const Notification = require('../models/notification');
+const Content = require('../models/content');
 
-// Run notification job
 (async () => {
+  // Connect to database
   await db.connect(process.env.MONGO_URI);
 
   // Launch puppeteer
   const browser = await puppeteer.launch({headless: true});
 
   // Get all notification jobs
-  const notiList = await Notification.find().populate("user");
+  const notifList = await Notification.find().populate("user");
 
   const promises = [];
-  notiList.forEach((noti, i) => {
+  notifList.forEach((notif, i) => {
     promises[i] = new Promise(async (resolve, reject) => {
       // Loading page
       const page = await browser.newPage();
-      await page.goto(noti.url, {
+      await page.goto(notif.url, {
         timeout: 0
       });
 
       // Scraping
       const scrape = await page.evaluate((element) => {
         return document.querySelector(element).innerText;
-      }, noti.element);
+      }, notif.element);
 
-      const textContent = await Content.findOne({ notification: noti.id });
+      const textContent = await Content.findOne({ notification: notif.id });
 
       // Detecting changes and taking action accordingly
       if (textContent == "") {
         const create = await Content.create({
-          notification: noti.id,
+          notification: notif.id,
           text: scrape
         });
         console.log(create);
-        resolve('\x1b[32mNOTIFICATION CREATED\x1b[0m for id ' + noti.id);
+        resolve('\x1b[32mNOTIFICATION CREATED\x1b[0m for id ' + notif.id);
       }
       else {
         const scrapeBuffer = Buffer.from(scrape);
@@ -53,14 +53,14 @@ const Content = require('./models/content');
           textContent.text = scrape;
           textContent.save();
           console.log(textContent);
-          const email = await noti.populate("user").then((data) => { return data.user.email });
+          const email = await notif.populate("user").then((data) => { return data.user.email });
           resolve('\x1b[32mNOTIFICATION SENT\x1b[0m to email ' + email);
         }
         else {
-          resolve('\x1b[33mNO CHANGE\x1b[0m for id ' + noti.id);
+          resolve('\x1b[33mNO CHANGE\x1b[0m for id ' + notif.id);
         }
       }
-    })
+    });
 
   });
 
