@@ -5,6 +5,10 @@ require('dotenv').config();
 
 const PORT = process.env.PORT;
 
+require('./models/user');
+require('./models/notification');
+require('./models/content');
+
 const homeRoute = require('./routes/home');
 const obsRoute = require('./routes/obs');
 

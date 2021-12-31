@@ -2,7 +2,14 @@ const mongoose = require('mongoose');
 
 const UserModel = new mongoose.Schema(
   {
-    email: String
+    email: {
+      type: String,
+      required: true
+    },
+    notification: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Notification'
+    }
   },
   { timestamps: true }
 );
