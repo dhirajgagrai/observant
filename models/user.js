@@ -4,14 +4,14 @@ const UserModel = new mongoose.Schema(
   {
     email: {
       type: String,
-      required: true
+      required: true,
     },
     notification: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Notification'
-    }
+      ref: 'Notification',
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model("User" , UserModel);
+module.exports = mongoose.model('User', UserModel);

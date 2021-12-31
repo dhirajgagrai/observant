@@ -1,9 +1,10 @@
 const express = require('express');
+
 const app = express();
 
 require('dotenv').config();
 
-const PORT = process.env.PORT;
+const { PORT } = process.env;
 
 require('./models/user');
 require('./models/notification');
@@ -16,5 +17,5 @@ app.use('/', homeRoute);
 app.use('/obs', obsRoute);
 
 app.listen(PORT, () => {
-  console.log(`Server started at http://localhost:${PORT}\n`)
+  console.log(`Server started at http://localhost:${PORT}\n`);
 });

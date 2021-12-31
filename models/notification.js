@@ -4,18 +4,18 @@ const NotificationModel = new mongoose.Schema(
   {
     url: {
       type: String,
-      required: true
+      required: true,
     },
     element: {
       type: String,
-      required: true
+      required: true,
     },
     content: {
       type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Content'
-    }
+      ref: 'Content',
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model("Notification" , NotificationModel);
+module.exports = mongoose.model('Notification', NotificationModel);
