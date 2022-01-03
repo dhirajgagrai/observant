@@ -10,10 +10,7 @@ const NotificationModel = new mongoose.Schema(
       type: String,
       required: true,
     },
-    content: {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Content',
-    },
+    content: String,
   },
   { timestamps: true },
 );

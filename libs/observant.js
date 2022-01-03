@@ -1,61 +1,34 @@
-const puppeteer = require('puppeteer');
-const mongoose = require('mongoose');
-
 require('dotenv').config();
 
 const db = require('../config/db');
 
 const User = require('../models/user');
 const Notification = require('../models/notification');
-const Content = require('../models/content');
 
-exports.start = async () => {
+const scraper = require('./scraper');
+const buffCompare = require('./buffCompare');
+
+module.exports = async () => {
   // Connect to database
   await db.connect();
-
-  // Launch puppeteer
-  const browser = await puppeteer.launch({ headless: true });
 
   // Get all notification jobs
   const notifList = await Notification.find();
 
   Promise.all(notifList.map(async (notif) => {
-    // Loading page
-    const page = await browser.newPage();
-    await page.goto(notif.url, {
-      timeout: 0,
-    });
+    const scrape = await scraper(notif.url, notif.element);
 
-    // Scraping
-    const scrape = await page.evaluate(
-      (element) => document.querySelector(element).innerText,
-      notif.element,
-    );
-
+    // No content ID ~ Scraping first time
     if (!notif.content) {
-      const createContent = await Content.create({
-        text: scrape,
-      });
+      await notif.updateOne({ content: scrape });
 
-      console.log(createContent);
-
-      await Notification.findByIdAndUpdate(notif._id, {
-        content: createContent._id,
-      });
-
-      return (`\x1b[32mNOTIFICATION CREATED\x1b[0m with id ${notif._id}`);
+      return (`\x1b[32mNOTIFICATION CREATED\x1b[0m for ${notif._id}`);
     }
 
-    const textContent = await Content.findById(notif.content);
-
-    // Detecting changes : Take action accordingly
-    const scrapeBuffer = Buffer.from(scrape);
-    const dbBuffer = Buffer.from(textContent.text);
-    const change = Buffer.compare(dbBuffer, scrapeBuffer);
-
+    // Detecting changes
+    const change = buffCompare(scrape, notif.content);
     if (change) {
-      textContent.text = scrape;
-      await textContent.save();
+      await notif.updateOne({ content: scrape });
 
       const user = await User.findOne({ notification: notif._id });
       return (`\x1b[32mNOTIFICATION SENT\x1b[0m to email ${user.email}`);
@@ -69,7 +42,6 @@ exports.start = async () => {
       });
 
       console.log();
-      browser.close();
-      mongoose.connection.close();
+      db.close();
     });
 };

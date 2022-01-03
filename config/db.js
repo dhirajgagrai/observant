@@ -7,4 +7,8 @@ const connect = async () => {
   console.log(`Connected to \x1b[36m${db.connection.host}\x1b[0m\n`);
 };
 
-exports.connect = connect;
+const close = () => {
+  mongoose.connection.close();
+};
+
+module.exports = { connect, close };

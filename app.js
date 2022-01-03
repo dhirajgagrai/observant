@@ -8,7 +8,6 @@ const { PORT } = process.env;
 
 require('./models/user');
 require('./models/notification');
-require('./models/content');
 
 const homeRoute = require('./routes/home');
 const obsRoute = require('./routes/obs');
