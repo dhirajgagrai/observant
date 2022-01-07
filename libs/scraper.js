@@ -7,8 +7,22 @@ module.exports = async (url, element) => {
   // Loading page
   const page = await browser.newPage();
   await page.goto(url, {
+    waitUntil: 'networkidle2',
     timeout: 0,
   });
+
+  // Scraping XPath
+  if (element.startsWith('/')) {
+    await page.waitForXPath(element);
+    const [xElement] = await page.$x(element);
+
+    const scrape = await page.evaluate(
+      (el) => el.innerText,
+      xElement,
+    );
+
+    return scrape;
+  }
 
   // Scraping
   const scrape = await page.evaluate(
@@ -16,7 +30,7 @@ module.exports = async (url, element) => {
     element,
   );
 
-  browser.close();
+  await browser.close();
 
   return scrape;
 };

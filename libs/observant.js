@@ -1,7 +1,5 @@
 require('dotenv').config();
 
-const db = require('../config/db');
-
 const User = require('../models/user');
 const Notification = require('../models/notification');
 
@@ -9,9 +7,6 @@ const scraper = require('./scraper');
 const buffCompare = require('./buffCompare');
 
 module.exports = async () => {
-  // Connect to database
-  await db.connect();
-
   // Get all notification jobs
   const notifList = await Notification.find();
 
@@ -40,8 +35,5 @@ module.exports = async () => {
       results.forEach((result) => {
         console.log(result);
       });
-
-      console.log();
-      db.close();
     });
 };
