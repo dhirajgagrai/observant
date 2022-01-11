@@ -21,7 +21,8 @@ module.exports = async (url, element) => {
       xElement,
     );
 
-    return scrape;
+    const buff = Buffer.from(scrape);
+    return buff.toString('base64');
   }
 
   // Scraping
@@ -32,5 +33,6 @@ module.exports = async (url, element) => {
 
   await browser.close();
 
-  return scrape;
+  const buff = Buffer.from(scrape);
+  return buff.toString('base64');
 };

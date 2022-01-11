@@ -4,7 +4,6 @@ const User = require('../models/user');
 const Notification = require('../models/notification');
 
 const scraper = require('./scraper');
-const buffCompare = require('./buffCompare');
 
 module.exports = async () => {
   // Get all notification jobs
@@ -21,8 +20,7 @@ module.exports = async () => {
     }
 
     // Detecting changes
-    const change = buffCompare(scrape, notif.content);
-    if (change) {
+    if (scrape !== notif.content) {
       await notif.updateOne({ content: scrape });
 
       const user = await User.findOne({ notification: notif._id });
