@@ -10,6 +10,10 @@ const NotificationModel = new mongoose.Schema(
       type: String,
       required: true,
     },
+    deep: {
+      type: Boolean,
+      default: false,
+    },
     content: String,
   },
   { timestamps: true },

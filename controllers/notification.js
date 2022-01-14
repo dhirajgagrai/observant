@@ -1,7 +1,7 @@
 const Notification = require('../models/notification');
 const User = require('../models/user');
 
-const Service = require('../services');
+const scrape = require('../services/scrape');
 
 exports.list = async (req, res) => {
   const notifs = await Notification.find();
@@ -19,20 +19,21 @@ exports.create = async (req, res) => {
 
   res.send({ result: 'Notification Created' });
 
-  await Service.addScrape(notif);
+  await scrape(notif._id);
 };
 
 exports.edit = async (req, res) => {
-  const { id, url, element } = req.body;
+  // eslint-disable-next-line object-curly-newline
+  const { id, url, element, deep } = req.body;
   const notif = await Notification.findByIdAndUpdate(
     id,
-    { url, element },
+    { url, element, deep },
     { returnDocument: 'after' },
   );
 
   res.send({ result: 'Notification Updated' });
 
-  await Service.addScrape(notif);
+  await scrape(notif._id);
 };
 
 exports.remove = async (req, res) => {

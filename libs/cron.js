@@ -1,9 +1,8 @@
 const { CronJob } = require('cron');
 
-const observant = require('./observant');
+module.exports = (func) => {
+  // Every 1 hour
+  const job = new CronJob('* * */1 * * *', func());
 
-// Every 1 hour
-module.exports = new CronJob('0 0 */1 * * *', () => {
-  console.log('\nCron Job Running');
-  observant();
-});
+  job.start();
+};

@@ -3,14 +3,14 @@ require('dotenv').config();
 const User = require('../models/user');
 const Notification = require('../models/notification');
 
-const scraper = require('./scraper');
+const scraper = require('../libs/scraper');
 
 module.exports = async () => {
   // Get all notification jobs
   const notifList = await Notification.find();
 
   Promise.all(notifList.map(async (notif) => {
-    const scrape = await scraper(notif.url, notif.element);
+    const scrape = await scraper(notif.url, notif.element, notif.deep);
 
     // No content ID ~ Scraping first time
     if (!notif.content) {

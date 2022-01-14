@@ -11,32 +11,26 @@ const { PORT } = process.env;
 // Database
 const db = require('./config/db');
 
-// Cron Job
 const cron = require('./libs/cron');
+const observant = require('./services/observant');
 
 // Models
 require('./models/user');
 require('./models/notification');
 
-// API & Routes
-const homeRoute = require('./routes/home');
-
-const obsRoute = require('./routes/api/obs');
-const notifRoute = require('./routes/api/notification');
-const userRoute = require('./routes/api/user');
+// API Routes
+const notifRoute = require('./api/notification');
+const userRoute = require('./api/user');
 
 // Connect DB and Run Cron
 (async () => {
   await db.connect();
-  await cron.start();
+  cron(observant);
 })();
 
 // Application
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/', homeRoute);
-
-app.use('/api/obs', obsRoute);
 app.use('/api/notification', notifRoute);
 app.use('/api/user', userRoute);
 
